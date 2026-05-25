@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Travel Creator Content System</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ocean-deep: #1A6B8A;
+  --ocean-mid: #2E9AB5;
+  --ocean-light: #7DC8E0;
+  --ocean-pale: #C2E8F5;
+  --sand: #F5EDD8;
+  --sand-dark: #E8D8B0;
+  --coral: #E8856A;
+  --coral-light: #F5B5A0;
+  --white: #FFFFFF;
+  --text: #1A2B35;
+  --text-muted: #5A7A8A;
+  --text-light: #8AACBC;
+  --card-bg: rgba(255,255,255,0.92);
+  --border: rgba(46,154,181,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  color: var(--text);
+  overflow-x: hidden;
+  position: relative;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #B8E4F5 0%, #D4EEF8 15%, #E8F6FB 30%, #F0F8E8 55%, #F5EDD8 75%, #EDE0C4 100%);
+  z-index: 0;
+}
+.wave-svg {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
+}
+.sun-decoration {
+  position: fixed;
+  top: -60px; right: -60px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,210,100,0.35) 0%, rgba(255,180,60,0.12) 50%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+.container { position: relative; z-index: 1; max-width: 660px; margin: 0 auto; padding: 0 18px; }
+
+/* NAV TABS */
+.tab-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(232,244,253,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(46,154,181,0.15);
+  padding: 0 18px;
+  max-width: 100%;
+}
+.tab-inner {
+  max-width: 660px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0;
+}
+.tab-btn {
+  flex: 1;
+  padding: 14px 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tab-btn.active {
+  color: var(--ocean-deep);
+  border-bottom-color: var(--ocean-deep);
+}
+.tab-btn .badge {
+  background: var(--coral);
+  color: white;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* PAGES */
+.page { display: none; }
+.page.active { display: block; }
+
+/* HEADER */
+.header { text-align: center; padding: 44px 20px 32px; }
+.header-eyebrow {
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--ocean-deep); margin-bottom: 14px; opacity: 0.8;
+}
+.header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 7vw, 44px);
+  font-weight: 700; color: var(--ocean-deep);
+  line-height: 1.15; margin-bottom: 10px;
+}
+.header p { font-size: 14px; color: var(--text-muted); line-height: 1.7; max-width: 380px; margin: 0 auto; }
+.header-wave { display: flex; justify-content: center; gap: 6px; margin-top: 20px; }
+.header-wave span { display: block; height: 3px; border-radius: 2px; }
+.header-wave span:nth-child(1) { width: 24px; background: var(--ocean-light); }
+.header-wave span:nth-child(2) { width: 40px; background: var(--ocean-mid); }
+.header-wave span:nth-child(3) { width: 24px; background: var(--ocean-light); }
+
+/* PROGRESS */
+.progress-wrap { padding: 0 18px 24px; max-width: 660px; margin: 0 auto; position: relative; z-index: 1; }
+.progress-bar-bg { height: 4px; background: rgba(46,154,181,0.15); border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--ocean-mid), var(--coral)); border-radius: 4px; transition: width 0.5s ease; }
+.progress-label { font-size: 11px; color: var(--text-light); margin-top: 7px; }
+
+/* STEP CARDS */
+.step { display: none; animation: fadeUp 0.35s ease; }
+.step.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+.step-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 22px; padding: 28px 24px; margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 8px 32px rgba(26,107,138,0.1), 0 2px 8px rgba(26,107,138,0.06);
+}
+.step-num { font-size: 10px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--coral); margin-bottom: 6px; }
+.step-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; color: var(--ocean-deep); margin-bottom: 6px; line-height: 1.25; }
+.step-subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+
+/* OPTIONS */
+.options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 9px; margin-bottom: 12px; }
+.option-btn {
+  background: rgba(232,244,253,0.6);
+  border: 1.5px solid rgba(46,154,181,0.18);
+  border-radius: 12px; padding: 11px 13px;
+  font-family: 'DM Sans', sans-serif; font-size: 12.5px;
+  color: var(--text); cursor: pointer; transition: all 0.2s ease;
+  text-align: left; line-height: 1.4;
+}
+.option-btn:hover { border-color: var(--ocean-mid); background: rgba(46,154,181,0.1); transform: translateY(-1px); }
+.option-btn.selected { border-color: var(--ocean-deep); background: rgba(26,107,138,0.1); color: var(--ocean-deep); font-weight: 500; }
+
+.other-hint { font-size: 11px; color: var(--text-light); margin-bottom: 6px; }
+.other-input-wrap { display: flex; gap: 8px; align-items: center; }
+.other-input-wrap input {
+  flex: 1; background: rgba(232,244,253,0.6);
+  border: 1.5px solid rgba(46,154,181,0.18); border-radius: 10px;
+  padding: 10px 13px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--text); outline: none; transition: border-color 0.2s;
+}
+.other-input-wrap input:focus { border-color: var(--ocean-mid); }
+.other-input-wrap input::placeholder { color: var(--text-light); }
+
+.text-input {
+  width: 100%; background: rgba(232,244,253,0.6);
+  border: 1.5px solid rgba(46,154,181,0.18); border-radius: 12px;
+  padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  color: var(--text); outline: none; transition: border-color 0.2s;
+}
+.text-input:focus { border-color: var(--ocean-mid); }
+.text-input::placeholder { color: var(--text-light); }
+.input-label { font-size: 12.5px; font-weight: 500; color: var(--text-muted); margin-bottom: 7px; display: block; }
+.input-group { margin-bottom: 16px; }
+
+.platform-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.platform-btn {
+  background: rgba(232,244,253,0.6); border: 1.5px solid rgba(46,154,181,0.18);
+  border-radius: 16px; padding: 18px 10px; cursor: pointer; transition: all 0.2s ease;
+  text-align: center; font-family: 'DM Sans', sans-serif;
+}
+.platform-btn .icon { font-size: 26px; margin-bottom: 7px; }
+.platform-btn .name { font-size: 12.5px; font-weight: 500; color: var(--text); }
+.platform-btn:hover { border-color: var(--ocean-mid); transform: translateY(-2px); }
+.platform-btn.selected { border-color: var(--ocean-deep); background: rgba(26,107,138,0.1); }
+.platform-btn.selected .name { color: var(--ocean-deep); }
+
+.nav-row { display: flex; gap: 10px; margin-top: 6px; }
+.btn-back {
+  background: transparent; border: 1.5px solid rgba(46,154,181,0.25);
+  border-radius: 12px; padding: 13px 20px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+}
+.btn-back:hover { border-color: var(--ocean-mid); color: var(--ocean-deep); }
+.btn-next {
+  flex: 1; background: linear-gradient(135deg, var(--ocean-deep), var(--ocean-mid));
+  border: none; border-radius: 12px; padding: 13px 20px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  color: white; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+}
+.btn-next:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,107,138,0.3); }
+.btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-generate {
+  width: 100%; background: linear-gradient(135deg, var(--coral), #D4604A);
+  border: none; border-radius: 14px; padding: 17px;
+  font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600;
+  color: white; cursor: pointer; transition: all 0.3s; letter-spacing: 0.02em; margin-top: 6px;
+}
+.btn-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,133,106,0.4); }
+.btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* LOADING */
+.loading-screen { display: none; text-align: center; padding: 70px 20px; }
+.loading-screen.active { display: block; }
+.loading-waves { display: flex; justify-content: center; align-items: flex-end; gap: 6px; height: 40px; margin-bottom: 28px; }
+.wave-bar { width: 5px; border-radius: 3px; animation: waveAnim 1.2s ease-in-out infinite; }
+.wave-bar:nth-child(1) { height: 20px; animation-delay: 0s; background: var(--ocean-light); }
+.wave-bar:nth-child(2) { height: 32px; animation-delay: 0.15s; background: var(--ocean-mid); }
+.wave-bar:nth-child(3) { height: 40px; animation-delay: 0.3s; background: var(--ocean-deep); }
+.wave-bar:nth-child(4) { height: 32px; animation-delay: 0.45s; background: var(--ocean-mid); }
+.wave-bar:nth-child(5) { height: 20px; animation-delay: 0.6s; background: var(--ocean-light); }
+@keyframes waveAnim { 0%,100% { transform: scaleY(0.5); opacity: 0.6; } 50% { transform: scaleY(1); opacity: 1; } }
+.loading-title { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: var(--ocean-deep); margin-bottom: 8px; }
+.loading-sub { font-size: 13px; color: var(--text-muted); }
+
+/* RESULTS */
+.results-screen { display: none; }
+.results-screen.active { display: block; }
+.results-header { text-align: center; padding: 36px 20px 24px; }
+.results-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 700; color: var(--ocean-deep); margin-bottom: 6px; }
+.results-header p { font-size: 13px; color: var(--text-muted); }
+
+.result-section {
+  background: var(--card-bg); backdrop-filter: blur(12px);
+  border-radius: 18px; padding: 22px; margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 4px 20px rgba(26,107,138,0.07);
+}
+.result-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--coral); margin-bottom: 10px; display: block; }
+.result-text { font-size: 13.5px; color: var(--text); line-height: 1.75; white-space: pre-wrap; }
+
+.slide-preview {
+  background: var(--card-bg); backdrop-filter: blur(12px);
+  border-radius: 18px; padding: 22px; margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 4px 20px rgba(26,107,138,0.07);
+}
+.slide-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ocean-mid); margin-bottom: 12px; }
+.slide-mock {
+  border-radius: 14px; aspect-ratio: 9/16; max-height: 260px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; margin-bottom: 16px;
+}
+.slide-text-box {
+  position: relative; z-index: 2;
+  background: rgba(255,255,255,0.94); border-radius: 16px;
+  padding: 14px 18px; margin: 0 14px; text-align: center; max-width: 88%;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+.slide-text-box p { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: #111; line-height: 1.4; }
+.slide-env { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px; font-style: italic; }
+.prompt-label { font-size: 10.5px; font-weight: 500; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+.prompt-box { font-size: 12px; color: var(--ocean-deep); line-height: 1.65; background: rgba(26,107,138,0.06); border-radius: 10px; padding: 12px 14px; border-left: 3px solid var(--ocean-light); }
+
+.hashtag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.hashtag { background: rgba(26,107,138,0.08); color: var(--ocean-deep); border-radius: 20px; padding: 6px 14px; font-size: 12.5px; font-weight: 500; }
+
+.copy-btn {
+  float: right; background: transparent;
+  border: 1.5px solid rgba(46,154,181,0.22); border-radius: 8px;
+  padding: 5px 12px; font-family: 'DM Sans', sans-serif; font-size: 11.5px;
+  color: var(--text-muted); cursor: pointer; transition: all 0.2s; margin-top: -2px;
+}
+.copy-btn:hover { border-color: var(--ocean-mid); color: var(--ocean-deep); }
+.copy-btn.copied { color: var(--coral); border-color: var(--coral); }
+
+.export-card {
+  background: linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-mid) 100%);
+  border-radius: 20px; padding: 28px 24px; margin-bottom: 12px;
+  text-align: center; color: white;
+  box-shadow: 0 8px 32px rgba(26,107,138,0.3);
+}
+.export-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.export-card p { font-size: 13px; opacity: 0.85; margin-bottom: 20px; line-height: 1.65; }
+.export-btn {
+  background: white; color: var(--ocean-deep); border: none; border-radius: 10px;
+  padding: 12px 20px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; margin: 0 4px 8px;
+}
+.export-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+
+.restart-btn {
+  width: 100%; background: transparent; border: 1.5px solid rgba(46,154,181,0.25);
+  border-radius: 12px; padding: 13px; font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  color: var(--text-muted); cursor: pointer; transition: all 0.2s; margin-bottom: 50px;
+}
+.restart-btn:hover { color: var(--ocean-deep); border-color: var(--ocean-mid); }
+.clearfix::after { content:''; display:table; clear:both; }
+
+/* COVER MOCK */
+.cover-grid { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; gap: 2px; }
+.cover-cell { border-radius: 3px; }
+.cc1 { background: linear-gradient(135deg,#7DC8E0,#4A9AB5); }
+.cc2 { background: linear-gradient(135deg,#F5EDD8,#E8D8B0); }
+.cc3 { background: linear-gradient(135deg,#E8856A,#F5B5A0); }
+.cc4 { background: linear-gradient(135deg,#4A9AB5,#1A6B8A); }
+.cc5 { background: linear-gradient(135deg,#C2E8F5,#7DC8E0); grid-column: span 2; }
+
+/* LIBRARY PAGE */
+.library-header { text-align: center; padding: 40px 20px 24px; }
+.library-header h2 { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 700; color: var(--ocean-deep); margin-bottom: 6px; }
+.library-header p { font-size: 13px; color: var(--text-muted); }
+
+.library-empty {
+  background: var(--card-bg); backdrop-filter: blur(12px);
+  border-radius: 20px; padding: 48px 24px; text-align: center;
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 4px 20px rgba(26,107,138,0.07);
+  margin-bottom: 40px;
+}
+.library-empty .empty-icon { font-size: 40px; margin-bottom: 16px; }
+.library-empty h3 { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--ocean-deep); margin-bottom: 8px; }
+.library-empty p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+.library-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+.library-card {
+  background: var(--card-bg); backdrop-filter: blur(12px);
+  border-radius: 18px; padding: 20px;
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 4px 20px rgba(26,107,138,0.07);
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 16px;
+}
+.library-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(26,107,138,0.12); }
+.library-card-thumb {
+  width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.library-card-info { flex: 1; min-width: 0; }
+.library-card-title { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: var(--ocean-deep); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.library-card-meta { font-size: 11.5px; color: var(--text-muted); }
+.library-card-arrow { color: var(--text-light); font-size: 18px; flex-shrink: 0; }
+
+/* LIBRARY DETAIL VIEW */
+.library-detail { display: none; }
+.library-detail.active { display: block; }
+.back-to-library {
+  background: transparent; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  color: var(--ocean-deep); padding: 16px 0 0;
+  display: flex; align-items: center; gap: 6px; position: relative; z-index: 1;
+}
+.back-to-library:hover { opacity: 0.75; }
+
+/* DELETE BTN */
+.delete-btn {
+  background: transparent; border: 1.5px solid rgba(232,133,106,0.3);
+  border-radius: 8px; padding: 5px 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 11.5px;
+  color: var(--coral); cursor: pointer; transition: all 0.2s; float: right;
+}
+.delete-btn:hover { background: rgba(232,133,106,0.1); }
+
+@media (max-width: 480px) {
+  .options-grid { grid-template-columns: 1fr 1fr; }
+  .step-card { padding: 22px 18px; }
+  .header h1 { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<div class="sun-decoration"></div>
+<svg class="wave-svg" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M0,60 C240,100 480,20 720,60 C960,100 1200,20 1440,60 L1440,120 L0,120 Z" fill="#2E9AB5"/>
+  <path d="M0,80 C360,40 720,100 1080,60 C1260,40 1380,80 1440,70 L1440,120 L0,120 Z" fill="#1A6B8A" opacity="0.5"/>
+</svg>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <div class="tab-inner">
+    <button class="tab-btn active" onclick="switchTab('generate')" id="tab-generate">✨ Create</button>
+    <button class="tab-btn" onclick="switchTab('library')" id="tab-library">📚 My Library <span class="badge" id="libBadge" style="display:none">0</span></button>
+  </div>
+</div>
+
+<!-- GENERATE PAGE -->
+<div class="page active" id="page-generate">
+  <div class="container">
+    <div class="header">
+      <div class="header-eyebrow">Dani Marie Presents</div>
+      <h1>The Travel Creator<br>Content System</h1>
+      <p>Simple, platform-specific carousel content for modern travel entrepreneurs.</p>
+      <div class="header-wave"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:14%"></div></div>
+    <div class="progress-label" id="progressLabel">Step 1 of 7</div>
+  </div>
+
+  <div class="container" id="onboardingSection">
+
+    <!-- STEP 1 -->
+    <div class="step active" id="step1">
+      <div class="step-card">
+        <div class="step-num">Step 01</div>
+        <div class="step-title">What's your role in the travel industry?</div>
+        <div class="step-subtitle">Pick the one that feels most like you right now.</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectOption(this,'role')">✈️ Travel Creator</button>
+          <button class="option-btn" onclick="selectOption(this,'role')">🗺️ Travel Advisor</button>
+          <button class="option-btn" onclick="selectOption(this,'role')">🌴 Travel Agent</button>
+          <button class="option-btn" onclick="selectOption(this,'role')">📹 Travel Vlogger</button>
+          <button class="option-btn" onclick="selectOption(this,'role')">✍️ Travel Blogger</button>
+          <button class="option-btn" onclick="selectOption(this,'role')">💎 Luxury Influencer</button>
+          <button class="option-btn" onclick="selectOption(this,'role')">🌺 Lifestyle Creator</button>
+          <button class="option-btn" onclick="selectOption(this,'role')">📣 Attraction Marketer</button>
+        </div>
+        <div class="other-hint">Don't see your role? Type it below:</div>
+        <div class="other-input-wrap"><input type="text" placeholder="e.g. Travel Mentor, Resort Blogger..." id="roleOther" oninput="handleOtherInput('role','roleOther','next1')"></div>
+      </div>
+      <div class="nav-row"><button class="btn-next" onclick="nextStep(1)" id="next1" disabled>Continue →</button></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step2">
+      <div class="step-card">
+        <div class="step-num">Step 02</div>
+        <div class="step-title">What type of travel do you focus on?</div>
+        <div class="step-subtitle">Choose everything that fits your vibe.</div>
+        <div class="options-grid" id="nicheGrid">
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🏝️ Island Escapes</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🌊 California Coastal</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">💎 Luxury Resorts</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🍹 All-Inclusive</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🚢 Cruises</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🧘 Wellness Travel</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">👨‍👩‍👧 Family Travel</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">👯 Girls Trips</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">💑 Romantic Getaways</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🏖️ Beach Destinations</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🏙️ City Travel</button>
+          <button class="option-btn" onclick="selectMulti(this,'niche','next2')">🍽️ Food-Focused Travel</button>
+        </div>
+        <div class="other-hint" style="margin-top:8px;">Want to add more? Type below:</div>
+        <div class="other-input-wrap"><input type="text" placeholder="e.g. Eco Travel, Adventure Travel..." id="nicheOther" oninput="handleOtherMulti('niche','nicheOther','next2')"></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="prevStep(2)">← Back</button>
+        <button class="btn-next" onclick="nextStep(2)" id="next2" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step3">
+      <div class="step-card">
+        <div class="step-num">Step 03</div>
+        <div class="step-title">What's your visual aesthetic?</div>
+        <div class="step-subtitle">Select all that apply — this shapes your image prompts.</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">✨ Luxury Editorial</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">🎬 Cinematic Realism</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">📌 Pinterest-Style</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">🌸 Feminine Luxury</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">🌊 Coastal Chic</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">🌺 Tropical Luxury</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">☕ Cozy Creator</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">🤍 Modern Minimalist</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">📰 Travel Magazine</button>
+          <button class="option-btn" onclick="selectMulti(this,'aesthetic','next3')">🏖️ Beach Club</button>
+        </div>
+        <div class="other-hint" style="margin-top:8px;">Something else in mind?</div>
+        <div class="other-input-wrap"><input type="text" placeholder="e.g. Dark Moody, Boho Chic..." id="aestheticOther" oninput="handleOtherMulti('aesthetic','aestheticOther','next3')"></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="prevStep(3)">← Back</button>
+        <button class="btn-next" onclick="nextStep(3)" id="next3" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" id="step4">
+      <div class="step-card">
+        <div class="step-num">Step 04</div>
+        <div class="step-title">What content style do you want?</div>
+        <div class="step-subtitle">Select all that apply.</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">📈 TikTok Growth Tips</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">📸 Instagram Growth Tips</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">🎨 Creator Branding</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">🧲 Attraction Marketing</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">🌟 Creator Lifestyle</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">📚 Travel Creator Education</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">🗺️ Documenting The Journey</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">⚙️ Content Workflow</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">💼 Travel Business Tips</button>
+          <button class="option-btn" onclick="selectMulti(this,'contentStyle','next4')">💰 Creator Economy</button>
+        </div>
+        <div class="other-hint" style="margin-top:8px;">Something else?</div>
+        <div class="other-input-wrap"><input type="text" placeholder="e.g. Mindset for Creators..." id="contentOther" oninput="handleOtherMulti('contentStyle','contentOther','next4')"></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="prevStep(4)">← Back</button>
+        <button class="btn-next" onclick="nextStep(4)" id="next4" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step" id="step5">
+      <div class="step-card">
+        <div class="step-num">Step 05</div>
+        <div class="step-title">Who are you trying to attract?</div>
+        <div class="step-subtitle">Select all that apply.</div>
+        <div class="options-grid">
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">🌱 Beginner Travel Creators</button>
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">🗺️ Aspiring Travel Advisors</button>
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">💎 Luxury Travelers</button>
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">📱 Content Creators</button>
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">👩‍💼 Women Entrepreneurs</button>
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">✈️ Travel Lovers</button>
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">🌟 Lifestyle Creators</button>
+          <button class="option-btn" onclick="selectMulti(this,'audience','next5')">💰 Creator Economy Audience</button>
+        </div>
+        <div class="other-hint" style="margin-top:8px;">Want to add more?</div>
+        <div class="other-input-wrap"><input type="text" placeholder="e.g. Solo Female Travelers..." id="audienceOther" oninput="handleOtherMulti('audience','audienceOther','next5')"></div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="prevStep(5)">← Back</button>
+        <button class="btn-next" onclick="nextStep(5)" id="next5" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step" id="step6">
+      <div class="step-card">
+        <div class="step-num">Step 06</div>
+        <div class="step-title">Which platform is this for?</div>
+        <div class="step-subtitle">Your content tone and topics will adapt to your platform.</div>
+        <div class="platform-toggle">
+          <button class="platform-btn" onclick="selectPlatform(this,'TikTok')"><div class="icon">🎵</div><div class="name">TikTok</div></button>
+          <button class="platform-btn" onclick="selectPlatform(this,'Instagram')"><div class="icon">📸</div><div class="name">Instagram</div></button>
+          <button class="platform-btn" onclick="selectPlatform(this,'Both')"><div class="icon">🔥</div><div class="name">Both</div></button>
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="prevStep(6)">← Back</button>
+        <button class="btn-next" onclick="nextStep(6)" id="next6" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="step" id="step7">
+      <div class="step-card">
+        <div class="step-num">Step 07</div>
+        <div class="step-title">Your branding details</div>
+        <div class="step-subtitle">These get woven into your captions, CTAs, and image prompts.</div>
+        <div class="input-group">
+          <label class="input-label">About you (optional but recommended)</label>
+          <textarea class="text-input" id="aboutMe" placeholder="e.g. I am a beginner travel advisor with Archer Travel, just starting out, helping women plan luxury vacations and island getaways..." rows="3" style="resize:none;line-height:1.6;"></textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Your social media handle *</label>
+          <input type="text" class="text-input" id="handle" placeholder="@yourusername" oninput="checkStep7()">
+        </div>
+        <div class="input-group">
+          <label class="input-label">YouTube username (optional)</label>
+          <input type="text" class="text-input" id="youtube" placeholder="Your YouTube channel name">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Preferred call to action *</label>
+          <div class="options-grid" style="grid-template-columns:1fr 1fr; margin-bottom:10px;">
+            <button class="option-btn" style="font-size:12px;" onclick="selectCTA(this,'Follow for more travel creator tips')">Follow for more travel creator tips</button>
+            <button class="option-btn" style="font-size:12px;" onclick="selectCTA(this,'Save this for later')">Save this for later</button>
+            <button class="option-btn" style="font-size:12px;" onclick="selectCTA(this,'Comment INVITE for more info')">Comment INVITE for more info</button>
+            <button class="option-btn" style="font-size:12px;" onclick="selectCTA(this,'Follow my creator journey')">Follow my creator journey</button>
+          </div>
+          <div class="other-hint">Or write your own CTA:</div>
+          <div class="other-input-wrap"><input type="text" placeholder="e.g. DM me TRAVEL to get started..." id="ctaOther" oninput="handleCTAOther()"></div>
+        </div>
+      </div>
+      <div id="generateError" style="display:none;background:rgba(232,133,106,0.12);border:1.5px solid rgba(232,133,106,0.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#C46A50;margin-top:10px;line-height:1.5;"></div>
+      <div class="nav-row">
+        <button class="btn-back" onclick="prevStep(7)">← Back</button>
+        <button class="btn-generate" onclick="generateCarousel()" id="generateBtn" disabled>✨ Generate My Carousel</button>
+      </div>
+    </div>
+
+  </div><!-- /onboardingSection -->
+
+  <!-- LOADING -->
+  <div class="container">
+    <div class="loading-screen" id="loadingScreen">
+      <div class="loading-waves">
+        <div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div><div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+      <div class="loading-title" id="loadingText">Building your carousel...</div>
+      <div class="loading-sub">Crafting platform-specific content just for you</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="container">
+    <div class="results-screen" id="resultsScreen">
+      <div class="results-header">
+        <h2>Your Carousel is Ready ✨</h2>
+        <p id="resultsSubtitle"></p>
+      </div>
+      <div id="resultsContent"></div>
+      <button class="restart-btn" onclick="restart()">← Create Another Carousel</button>
+    </div>
+  </div>
+
+</div><!-- /page-generate -->
+
+<!-- LIBRARY PAGE -->
+<div class="page" id="page-library">
+  <div class="container">
+    <div class="library-header">
+      <h2>My Content Library 📚</h2>
+      <p>All your generated carousels, saved on this device</p>
+    </div>
+
+    <!-- LIBRARY LIST -->
+    <div id="libraryList">
+      <div class="library-empty">
+        <div class="empty-icon">🌊</div>
+        <h3>Your library is empty</h3>
+        <p>Generate your first carousel and it will automatically appear here for you to view anytime.</p>
+      </div>
+    </div>
+
+    <!-- LIBRARY DETAIL -->
+    <div class="library-detail" id="libraryDetail">
+      <button class="back-to-library" onclick="closeDetail()">← Back to Library</button>
+      <div id="libraryDetailContent"></div>
+      <button class="restart-btn" style="margin-top:12px;" onclick="closeDetail()">← Back to Library</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const answers = { role:'', niche:[], aesthetic:[], contentStyle:[], audience:[], platform:'', handle:'', youtube:'', cta:'' };
+let currentStep = 1;
+
+// ─── LIBRARY STORAGE (in-memory + localStorage fallback) ───
+let _memLib = null;
+function getLibrary() {
+  if (_memLib !== null) return _memLib;
+  try { _memLib = JSON.parse(localStorage.getItem('tccs_library') || '[]'); } catch(e) { _memLib = []; }
+  return _memLib;
+}
+function saveToLibrary(entry) {
+  const lib = getLibrary();
+  lib.unshift(entry);
+  _memLib = lib;
+  try { localStorage.setItem('tccs_library', JSON.stringify(lib)); } catch(e) {}
+  updateLibraryBadge();
+}
+function deleteFromLibrary(id) {
+  _memLib = getLibrary().filter(e => e.id !== id);
+  try { localStorage.setItem('tccs_library', JSON.stringify(_memLib)); } catch(e) {}
+  updateLibraryBadge();
+  renderLibraryList();
+}
+function updateLibraryBadge() {
+  const lib = getLibrary();
+  const badge = document.getElementById('libBadge');
+  if (lib.length > 0) { badge.style.display = 'inline'; badge.textContent = lib.length; }
+  else { badge.style.display = 'none'; }
+}
+
+// ─── TABS ───
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'library') renderLibraryList();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ─── FORM LOGIC ───
+function selectOption(btn, key) {
+  btn.closest('.options-grid').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[key] = btn.textContent.trim().replace(/^.\s/, '');
+  const nxt = document.getElementById('next' + currentStep);
+  if (nxt) nxt.disabled = false;
+}
+function selectMulti(btn, key, nextId) {
+  btn.classList.toggle('selected');
+  const grid = btn.closest('.options-grid');
+  const selected = Array.from(grid.querySelectorAll('.selected')).map(b => b.textContent.trim().replace(/^.\s/, ''));
+  const otherEl = document.getElementById(key + 'Other');
+  const otherVal = otherEl && otherEl.value.trim() ? [otherEl.value.trim()] : [];
+  answers[key] = [...selected, ...otherVal];
+  document.getElementById(nextId).disabled = answers[key].length === 0;
+}
+function handleOtherInput(key, inputId, nextId) {
+  const val = document.getElementById(inputId).value.trim();
+  const sel = document.querySelector('#step' + currentStep + ' .option-btn.selected');
+  answers[key] = val || (sel ? sel.textContent.trim().replace(/^.\s/, '') : '');
+  document.getElementById(nextId).disabled = !answers[key];
+}
+function handleOtherMulti(key, inputId, nextId) {
+  const otherVal = document.getElementById(inputId).value.trim();
+  const card = document.getElementById(inputId).closest('.step-card');
+  const grid = card.querySelector('.options-grid');
+  const selected = Array.from(grid.querySelectorAll('.selected')).map(b => b.textContent.trim().replace(/^.\s/, ''));
+  answers[key] = otherVal ? [...selected, otherVal] : selected;
+  document.getElementById(nextId).disabled = answers[key].length === 0;
+}
+function selectPlatform(btn, value) {
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers.platform = value;
+  document.getElementById('next6').disabled = false;
+}
+function selectCTA(btn, value) {
+  document.querySelectorAll('#step7 .option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers.cta = value;
+  document.getElementById('ctaOther').value = '';
+  checkStep7();
+}
+function handleCTAOther() {
+  const val = document.getElementById('ctaOther').value.trim();
+  if (val) { document.querySelectorAll('#step7 .option-btn').forEach(b => b.classList.remove('selected')); answers.cta = val; }
+  checkStep7();
+}
+function checkStep7() {
+  answers.handle = document.getElementById('handle').value.trim();
+  answers.youtube = document.getElementById('youtube').value.trim();
+  document.getElementById('generateBtn').disabled = !(answers.handle && answers.cta);
+}
+function nextStep(from) {
+  document.getElementById('step' + from).classList.remove('active');
+  currentStep = from + 1;
+  document.getElementById('step' + currentStep).classList.add('active');
+  updateProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function prevStep(from) {
+  document.getElementById('step' + from).classList.remove('active');
+  currentStep = from - 1;
+  document.getElementById('step' + currentStep).classList.add('active');
+  updateProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function updateProgress() {
+  document.getElementById('progressFill').style.width = (currentStep / 7 * 100) + '%';
+  document.getElementById('progressLabel').textContent = 'Step ' + currentStep + ' of 7';
+}
+
+// ─── GENERATE ───
+function generateCarousel() {
+  answers.handle = document.getElementById('handle').value.trim();
+  answers.youtube = document.getElementById('youtube').value.trim();
+
+  document.getElementById('onboardingSection').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('loadingScreen').classList.add('active');
+
+  const msgs = ['Building your carousel...','Crafting cinematic image prompts...','Writing your slide copy...','Polishing your captions...','Almost ready...'];
+  let mi = 0;
+  const iv = setInterval(() => { document.getElementById('loadingText').textContent = msgs[++mi % msgs.length]; }, 2200);
+
+  const platform = answers.platform === 'Both' ? 'TikTok and Instagram' : answers.platform;
+  const niches = answers.niche.join(', ') || 'luxury travel';
+  const aesthetics = answers.aesthetic.join(', ') || 'cinematic luxury';
+  const contentStyles = answers.contentStyle.join(', ');
+  const audiences = answers.audience.join(', ');
+  const handle = answers.handle;
+
+  // Build a uniqueness seed so every carousel is different
+  const topicAngles = [
+    'a counterintuitive truth most travel creators overlook',
+    'a practical behind-the-scenes reality of being a travel creator',
+    'a specific mistake beginners make and how to avoid it',
+    'an underrated strategy that experienced travel creators use',
+    'a mindset shift that changed how a travel creator approaches content',
+    'a specific platform behavior that travel creators need to understand',
+    'a honest observation about what actually grows a travel creator account'
+  ];
+  const randomAngle = topicAngles[Math.floor(Math.random() * topicAngles.length)];
+
+  const systemPrompt = `You are an elite luxury travel creator content strategist creating cinematic, platform-native carousel content. Today's date is May 25, 2026.
+
+ABSOLUTE RULES:
+1. The current year is 2026. NEVER use 2024 or any past year in any title, description, or text.
+2. THE PLATFORM IS EVERYTHING. If the platform is TikTok, every single slide, the SEO title, the SEO description, the caption, and the hashtags must explicitly mention TikTok. If the platform is Instagram, everything must mention Instagram. This is non-negotiable.
+3. NEVER invent stats, results, or claims the user did not provide. If the About Me section says they are a beginner, keep all content grounded in beginner reality. Do not fabricate bookings tripled, clients gained, or any specific results.
+4. Every carousel must feel completely unique. Use a fresh angle, fresh hook, fresh perspective. The cover text must be specific and platform-named — e.g. TikTok Tips For Travel Advisors or What I Wish I Knew Before Posting On TikTok As A Travel Agent.
+5. Slide text sounds like a real creator talking to another creator. Direct, observational, conversational. NEVER robotic, corporate, or motivational fluff.
+6. Every image prompt describes the COMPLETE finished slide — the scene AND the text overlay element.
+7. Image prompts begin with: Hyper realistic cinematic iPhone photo of...
+8. Each slide: different woman, different ethnicity (rotate: Black woman, Latina woman, Mexican woman, Asian woman, South Asian woman, Afro-Latina woman, mixed race woman — never repeat in one carousel), completely different environment, composition, camera angle.
+9. Text overlay in EVERY image prompt: centered white rounded rectangle with bold black text that reads: [exact slide text — NO quotes around the text] — small subtle text near bottom: [handle]
+10. Cover image prompt = editorial collage ripped-paper style with layered travel lifestyle snapshots, creator workflow, luxury resort details, tropical textures PLUS centered white rounded text box with bold black cover text and handle near bottom.
+11. NEVER repeat environments, poses, or compositions across slides.
+12. Hashtags: EXACTLY 5. Real, searchable, platform-relevant hashtags for 2026. Must include the platform name in at least one hashtag.
+13. SEO Keywords: EXACTLY 5 natural search phrases a travel creator would realistically search for or rank on in 2026. Must be platform-specific.
+
+OUTPUT: Valid JSON only. No markdown. No backticks. No explanation.
+{
+  "seoTitle": "...",
+  "seoDescription": "...",
+  "coverImagePrompt": "...",
+  "coverTextOverlay": "...",
+  "slides": [
+    { "slideNumber": 1, "textOverlay": "...", "imagePrompt": "Hyper realistic cinematic iPhone photo of...", "environment": "..." }
+  ],
+  "caption": "...",
+  "hashtags": ["#tag1","#tag2","#tag3","#tag4","#tag5"],
+  "seoKeywords": ["keyword phrase 1","keyword phrase 2","keyword phrase 3","keyword phrase 4","keyword phrase 5"]
+}`;
+
+  const userPrompt = `Create a complete 7-slide travel creator carousel with this unique angle: ${randomAngle}
+
+Creator role: ${answers.role}
+Travel niche: ${niches}
+Visual aesthetic: ${aesthetics}
+Content style: ${contentStyles}
+Target audience: ${audiences}
+Platform: ${platform}
+Social handle: ${handle}
+YouTube: ${answers.youtube || 'none'}
+CTA: ${answers.cta}
+
+Platform tone:
+${answers.platform === 'TikTok' || answers.platform === 'Both' ? '- TikTok: hook-heavy, punchy, direct, growth-focused, visibility-first, beginner-friendly' : ''}
+${answers.platform === 'Instagram' || answers.platform === 'Both' ? '- Instagram: polished, editorial, saveable, lifestyle-forward, shareable' : ''}
+
+CRITICAL: The cover text overlay must be a fresh, specific, clickable hook tied to the unique angle above. Never use generic covers. Make it feel like something a real travel creator would stop scrolling for.
+
+CRITICAL FOR IMAGE PROMPTS: Each prompt describes the full finished slide — the cinematic scene (unique environment, unique ethnicity, unique composition) PLUS a centered white rounded rectangle with bold black text that reads: [exact slide text] and small subtle text near bottom: ${handle}
+
+Return ONLY valid JSON.`;
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': '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', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    clearInterval(iv);
+    // Handle API-level errors
+    if (data.error) throw new Error('API error: ' + data.error.message);
+    if (!data.content || data.content.length === 0) throw new Error('Empty response from API');
+    const raw = data.content.map(b => b.text || '').join('');
+    // Extract JSON more robustly
+    let clean = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+    // Find the first { and last } to isolate JSON
+    const start = clean.indexOf('{');
+    const end = clean.lastIndexOf('}');
+    if (start === -1 || end === -1) throw new Error('No JSON found in response');
+    clean = clean.slice(start, end + 1);
+    const result = JSON.parse(clean);
+    if (!result.slides || result.slides.length === 0) throw new Error('No slides generated');
+    // Save to library
+    const entry = {
+      id: Date.now().toString(),
+      date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
+      platform: answers.platform,
+      handle: answers.handle,
+      coverText: result.coverTextOverlay || 'My Carousel',
+      data: result,
+      answers: {...answers}
+    };
+    saveToLibrary(entry);
+    showResults(result);
+  })
+  .catch(err => {
+    clearInterval(iv);
+    console.error('Generation error:', err);
+    document.getElementById('loadingScreen').classList.remove('active');
+    document.getElementById('onboardingSection').style.display = 'block';
+    document.getElementById('progressWrap').style.display = 'block';
+    // Show error message on step 7
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step7').classList.add('active');
+    currentStep = 7;
+    const errDiv = document.getElementById('generateError');
+    if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'Something went wrong generating your carousel. Please try again.'; }
+  });
+}
+
+const mockGradients = [
+  'linear-gradient(160deg,#7DC8E0 0%,#1A6B8A 100%)',
+  'linear-gradient(160deg,#E8856A 0%,#C46A50 100%)',
+  'linear-gradient(160deg,#2E9AB5 0%,#7DC8E0 100%)',
+  'linear-gradient(160deg,#c8b89a 0%,#E8D8B0 100%)',
+  'linear-gradient(160deg,#1A6B8A 0%,#2E9AB5 100%)',
+  'linear-gradient(160deg,#C2E8F5 0%,#7DC8E0 100%)',
+  'linear-gradient(160deg,#E8856A 0%,#F5B5A0 100%)',
+];
+
+function buildResultsHTML(data, handle, platform) {
+  let html = '';
+
+  // SEO
+  html += `<div class="result-section"><div class="clearfix"><button class="copy-btn" onclick="doCopy('${esc(data.seoTitle+'\\n\\n'+data.seoDescription)}',this)">Copy</button><span class="result-label">SEO Title & Description</span></div><div class="result-text"><strong>${data.seoTitle}</strong>\n\n${data.seoDescription}</div></div>`;
+
+  // COVER
+  html += `<div class="slide-preview">
+    <div class="slide-label">Cover Image</div>
+    <div class="slide-mock" style="background:linear-gradient(160deg,#B8E4F5 0%,#7DC8E0 50%,#F5EDD8 100%);max-height:250px;">
+      <div class="cover-grid"><div class="cover-cell cc1"></div><div class="cover-cell cc2"></div><div class="cover-cell cc3"></div><div class="cover-cell cc4"></div><div class="cover-cell cc5"></div></div>
+      <div class="slide-text-box" style="position:relative;z-index:2;"><p>${data.coverTextOverlay}</p></div>
+    </div>
+    <div class="clearfix"><button class="copy-btn" onclick="doCopy('${esc(data.coverImagePrompt)}',this)">Copy Prompt</button><div class="prompt-label">Image Prompt — paste into your AI image tool</div></div>
+    <div class="prompt-box">${data.coverImagePrompt}</div>
+  </div>`;
+
+  // SLIDES
+  data.slides.forEach((slide, i) => {
+    html += `<div class="slide-preview">
+      <div class="slide-label">Slide ${slide.slideNumber}</div>
+      <div class="slide-mock" style="background:${mockGradients[i]};max-height:250px;">
+        <div class="slide-text-box"><p>${slide.textOverlay}</p></div>
+      </div>
+      <div class="slide-env">${slide.environment}</div>
+      <div class="clearfix"><button class="copy-btn" onclick="doCopy('${esc(slide.imagePrompt)}',this)">Copy Prompt</button><div class="prompt-label">Image Prompt — paste into your AI image tool</div></div>
+      <div class="prompt-box">${slide.imagePrompt}</div>
+    </div>`;
+  });
+
+  // CAPTION
+  html += `<div class="result-section"><div class="clearfix"><button class="copy-btn" onclick="doCopy('${esc(data.caption)}',this)">Copy</button><span class="result-label">Caption</span></div><div class="result-text">${data.caption}</div></div>`;
+
+  // HASHTAGS
+  html += `<div class="result-section"><div class="clearfix"><button class="copy-btn" onclick="doCopy('${esc(data.hashtags.join(' '))}',this)">Copy</button><span class="result-label">Hashtags (5 SEO-Researched)</span></div><div class="hashtag-row">${data.hashtags.map(h=>`<span class="hashtag">${h}</span>`).join('')}</div></div>`;
+
+  // SEO KEYWORDS
+  const kwText = data.seoKeywords ? data.seoKeywords.join(', ') : '';
+  if (kwText) {
+    html += `<div class="result-section"><div class="clearfix"><button class="copy-btn" onclick="doCopy('${esc(kwText)}',this)">Copy</button><span class="result-label">SEO Keyword Phrases</span></div><div class="result-text">${kwText}</div></div>`;
+  }
+
+  // ALL TEXT + PROMPTS
+  let allText = `COVER: ${data.coverTextOverlay}\n\n`;
+  data.slides.forEach(s => { allText += `SLIDE ${s.slideNumber}:\n${s.textOverlay}\n\n`; });
+  allText += `CAPTION:\n${data.caption}\n\nHASHTAGS:\n${data.hashtags.join(' ')}`;
+  if (kwText) allText += `\n\nSEO KEYWORDS:\n${kwText}`;
+
+  let allPrompts = `COVER PROMPT:\n${data.coverImagePrompt}\n\n`;
+  data.slides.forEach(s => { allPrompts += `SLIDE ${s.slideNumber} PROMPT:\n${s.imagePrompt}\n\n`; });
+
+  html += `<div class="export-card">
+    <h3>Ready to Create? 🌊</h3>
+    <p>Copy your slide text for Canva, or copy all image prompts and paste them into your favorite AI image generator — Midjourney, Adobe Firefly, Canva AI, or DALL-E — to generate your complete, finished slides.</p>
+    <button class="export-btn" onclick="doCopy('${esc(allText)}',this)">📋 Copy All Slide Text</button>
+    <button class="export-btn" onclick="doCopy('${esc(allPrompts)}',this)">🖼️ Copy All Image Prompts</button>
+    <button class="export-btn" onclick="window.open('https://www.canva.com','_blank')">Open Canva →</button>
+  </div>`;
+
+  return html;
+}
+
+function showResults(data) {
+  document.getElementById('loadingScreen').classList.remove('active');
+  document.getElementById('resultsScreen').classList.add('active');
+  document.getElementById('resultsSubtitle').textContent = `${answers.platform} carousel · ${answers.handle}`;
+  document.getElementById('resultsContent').innerHTML = buildResultsHTML(data, answers.handle, answers.platform);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ─── LIBRARY ───
+function renderLibraryList() {
+  const lib = getLibrary();
+  const container = document.getElementById('libraryList');
+  document.getElementById('libraryDetail').classList.remove('active');
+
+  if (lib.length === 0) {
+    container.innerHTML = `<div class="library-empty"><div class="empty-icon">🌊</div><h3>Your library is empty</h3><p>Generate your first carousel and it will automatically appear here for you to view anytime.</p></div>`;
+    return;
+  }
+
+  const platformIcons = { TikTok:'🎵', Instagram:'📸', Both:'🔥' };
+  const bgColors = [
+    'linear-gradient(135deg,#7DC8E0,#1A6B8A)',
+    'linear-gradient(135deg,#E8856A,#C46A50)',
+    'linear-gradient(135deg,#2E9AB5,#7DC8E0)',
+    'linear-gradient(135deg,#1A6B8A,#2E9AB5)',
+    'linear-gradient(135deg,#C2E8F5,#7DC8E0)',
+  ];
+
+  let html = '<div class="library-grid">';
+  lib.forEach((entry, i) => {
+    const icon = platformIcons[entry.platform] || '✨';
+    const bg = bgColors[i % bgColors.length];
+    html += `<div class="library-card" onclick="openDetail('${entry.id}')">
+      <div class="library-card-thumb" style="background:${bg}">${icon}</div>
+      <div class="library-card-info">
+        <div class="library-card-title">${entry.coverText}</div>
+        <div class="library-card-meta">${entry.platform} · ${entry.handle} · ${entry.date}</div>
+      </div>
+      <div class="library-card-arrow">›</div>
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function openDetail(id) {
+  const lib = getLibrary();
+  const entry = lib.find(e => e.id === id);
+  if (!entry) return;
+
+  document.getElementById('libraryList').style.display = 'none';
+  const detail = document.getElementById('libraryDetail');
+  detail.classList.add('active');
+
+  let html = `<div class="results-header" style="padding-top:20px;">
+    <h2>${entry.coverText}</h2>
+    <p>${entry.platform} · ${entry.handle} · ${entry.date}</p>
+  </div>`;
+  html += buildResultsHTML(entry.data, entry.handle, entry.platform);
+  html += `<div style="text-align:right;margin-bottom:8px;"><button class="delete-btn" onclick="confirmDelete('${entry.id}')">🗑 Delete this carousel</button></div>`;
+
+  document.getElementById('libraryDetailContent').innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function closeDetail() {
+  document.getElementById('libraryList').style.display = 'block';
+  document.getElementById('libraryDetail').classList.remove('active');
+  document.getElementById('libraryDetailContent').innerHTML = '';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function confirmDelete(id) {
+  if (confirm('Delete this carousel from your library?')) {
+    deleteFromLibrary(id);
+    closeDetail();
+  }
+}
+
+function esc(str) {
+  return (str||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,'\\n');
+}
+function doCopy(text, btn) {
+  const decoded = text.replace(/\\n/g,'\n').replace(/\\'/g,"'");
+  navigator.clipboard.writeText(decoded).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function restart() {
+  Object.keys(answers).forEach(k => { answers[k] = Array.isArray(answers[k]) ? [] : ''; });
+  currentStep = 1;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.option-btn, .platform-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('input[type=text]').forEach(i => i.value = '');
+  const am = document.getElementById('aboutMe'); if(am) am.value = '';
+  document.getElementById('step1').classList.add('active');
+  document.getElementById('next1').disabled = true;
+  document.getElementById('onboardingSection').style.display = 'block';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('resultsScreen').classList.remove('active');
+  document.getElementById('resultsContent').innerHTML = '';
+  updateProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// Init
+updateLibraryBadge();
+</script>
+</body>
+</html>
